@@ -1,1 +1,1 @@
-mejszolmichael.github.io
+https://mejszolmichael.github.io/
