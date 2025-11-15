@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>mObywatel - Pokaż QR</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="assets/card.css?v=1.0">
+    <link rel="stylesheet" href="assets/main.css">
+    <link rel="stylesheet" href="assets/qrscan.css">
+    <link rel="icon" type="image/x-icon" href="images/coi_common_ui_ic_mobywatel_logo.svg">
+    <link rel="apple-touch-icon" href="images/app_icon_240.webp">
+    <link rel="shortcut icon" href="images/coi_common_ui_ic_mobywatel_logo.svg">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="viewport" content="width=device-width, initial-scale=0.8, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <script src="assets/jsQR.js"></script>
+    <!-- QR generation library -->
+    <script src="assets/qrcode.min.js"></script>
+    <style>
+        /* Page-specific styles to mirror the native look */
+        .container { max-width: 440px; margin: 0 auto; padding: 70px 16px 24px; }
+        .main_title { font-family: Arial, Helvetica, sans-serif; font-size: 28px; font-weight: 700; color: #1f2125; margin: 18px 0 6px; text-align: center; }
+        .description { font-family: Arial, Helvetica, sans-serif; color: #6D6D70; font-size: 16px; line-height: 1.4; margin: 10px 0 22px; text-align: center; }
+        .qr_card { background: #fff; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,.08); padding: 18px; border: 1px solid #e5e5e7; margin-top: 24px; }
+        .qr_container { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; }
+        #qrcode { width: 220px; height: 220px; background: #fff; padding: 12px; border-radius: 12px; border: 1px solid #e5e5e7; }
+        .code_text { font-size: 36px; font-weight: 700; letter-spacing: 4px; color: #1f2125; text-align: center; }
+        .timer_container { margin-top: 14px; text-align: center; }
+        .timer_text { font-size: 14px; color: #6D6D70; }
+        .timer_bar { height: 4px; background: #e5e5e7; border-radius: 999px; overflow: hidden; margin: 8px auto 0; max-width: 260px; }
+        .timer_progress { height: 100%; width: 100%; background: #007AFF; }
+    </style>
+</head>
+<body>
+    <div class="top_grid">
+        <div class="action_grid">
+            <img src="images/ic_arrow_forward_Dgray.svg" class="back_img rotate90">
+            <p onclick="sendTo('qr.html')" class="back_text">Wróć</p>
+        </div>
+        <p class="title_text">Kod QR</p>
+    </div>
+
+
+    <div class="container">
+        <h1 class="main_title">Pokaż kod QR osobie, której<br> dokument sprawdzasz<br> </h1>
+        <p class="description"><br>Gdy ta osoba zeskanuje lub przepisze kod, zobaczysz jej dane na swoim telefonie.</p>
+        <div class="qr_card">
+            <div class="qr_container">
+                <div id="qrcode"></div>
+                <p class="code_text" id="codeText">234567</p>
+            </div>
+            <div class="timer_container">
+                <p class="timer_text" id="timerText">Kod wygaśnie za: 10 min 0 sek.</p>
+                <div class="timer_bar">
+                    <div class="timer_progress" id="timerProgress"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+        
+
+    <div class="bottom_bar">
+        <div class="bottom_bar_grid">
+            <div class="bottom_element_grid" send="home.html">
+                <div class="bottom_element_image home"></div>
+                <p class="bottom_element_text">Pulpit</p>
+            </div>
+            <div class="bottom_element_grid" send="documents.html">
+                <div class="bottom_element_image documents"></div>
+                <p class="bottom_element_text">Dokumenty</p>
+            </div>
+            <div class="bottom_element_grid" send="services.html">
+                <div class="bottom_element_image services"></div>
+                <p class="bottom_element_text">Usługi</p>
+            </div>
+            <div class="bottom_element_grid" send="qr.html">
+                <div class="bottom_element_image qr qr_open"></div>
+                <p class="bottom_element_text open">Kod QR</p>
+            </div>
+            <div class="bottom_element_grid" send="more.html">
+                <div class="bottom_element_image more"></div>
+                <p class="bottom_element_text">Więcej</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="assets/bar.js"></script>
+    <script src="assets/manifest.js"></script>
+    <script>
+        // Generate random 6‑digit code
+        function generateCode() {
+            return Math.floor(100000 + Math.random() * 900000).toString();
+        }
+
+        // Generate and render QR using qrcodejs
+        function generateQRCode() {
+            const code = generateCode();
+            document.getElementById('codeText').textContent = code;
+
+            const qrData = `https://mobywatel.gov.pl/verify?code=${code}`;
+            const qrContainer = document.getElementById('qrcode');
+            qrContainer.innerHTML = '';
+            new QRCode(qrContainer, {
+                text: qrData,
+                width: 220,
+                height: 220,
+                correctLevel: QRCode.CorrectLevel.M
+            });
+        }
+
+        // Timer
+        const timerText = document.getElementById('timerText');
+        const timerProgress = document.getElementById('timerProgress');
+        const TOTAL_SECONDS = 600; // 10 min 0 sek.
+        let timeLeft = TOTAL_SECONDS;
+
+        function formatTimer(seconds) {
+            const m = Math.floor(seconds / 60);
+            const s = seconds % 60;
+            return `Kod wygaśnie za: ${m} min ${s} sek.`;
+        }
+
+        function updateTimer() {
+            timerText.textContent = formatTimer(timeLeft);
+            const progress = (timeLeft / TOTAL_SECONDS) * 100;
+            timerProgress.style.width = progress + '%';
+            if (timeLeft <= 0) {
+                generateQRCode();
+                timeLeft = TOTAL_SECONDS;
+            } else {
+                timeLeft--;
+            }
+        }
+
+        // Init
+        document.addEventListener('DOMContentLoaded', function() {
+            // Ensure title is not hidden under fixed top bar
+            const container = document.querySelector('.container');
+            if (container && window.getComputedStyle(container).paddingTop === '0px') {
+                container.style.paddingTop = '70px';
+            }
+            generateQRCode();
+            timeLeft = TOTAL_SECONDS; // start from 10:00
+            updateTimer();
+            setInterval(updateTimer, 1000);
+        });
+    </script>
+</body>
+</html>
